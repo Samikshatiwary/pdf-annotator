@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .highlight-yellow {
+    @apply bg-annotation-yellow;
+  }
+  
+  .highlight-blue {
+    @apply bg-annotation-blue;
+  }
+  
+  .highlight-green {
+    @apply bg-annotation-green;
+  }
+  
+  .highlight-red {
+    @apply bg-annotation-red;
+  }
+  
+  .highlight-purple {
+    @apply bg-annotation-purple;
+  }
+}
+
+/* PDF.js worker styles */
+.react-pdf__Page {
+  position: relative !important;
+}
+
+.react-pdf__Page__canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Loading animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

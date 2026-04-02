@@ -1,0 +1,250 @@
+/* Component-specific styles */
+
+/* Button Styles */
+.btn {
+  @apply font-medium rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 focus:ring-primary-500;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 focus:ring-gray-400;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white px-4 py-2 focus:ring-red-500;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white px-4 py-2 focus:ring-green-500;
+}
+
+.btn-outline {
+  @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 focus:ring-primary-500;
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-sm;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-lg;
+}
+
+.btn-icon {
+  @apply p-2 rounded-full hover:bg-gray-100;
+}
+
+/* Input Styles */
+.input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+}
+
+.input-error {
+  @apply border-red-500 focus:ring-red-500;
+}
+
+.input-success {
+  @apply border-green-500 focus:ring-green-500;
+}
+
+/* Card Styles */
+.card {
+  @apply bg-white rounded-lg shadow-md p-6 transition-shadow duration-200 hover:shadow-lg;
+}
+
+.card-header {
+  @apply border-b border-gray-200 pb-4 mb-4;
+}
+
+.card-footer {
+  @apply border-t border-gray-200 pt-4 mt-4;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in;
+}
+
+.modal-content {
+  @apply bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 animate-slide-up;
+}
+
+.modal-header {
+  @apply flex items-center justify-between p-6 border-b border-gray-200;
+}
+
+.modal-body {
+  @apply p-6;
+}
+
+.modal-footer {
+  @apply flex items-center justify-end gap-2 p-6 border-t border-gray-200;
+}
+
+/* Badge Styles */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-primary {
+  @apply bg-primary-100 text-primary-800;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+  @apply bg-red-100 text-red-800;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800;
+}
+
+/* Dropdown Styles */
+.dropdown {
+  @apply relative inline-block text-left;
+}
+
+.dropdown-menu {
+  @apply absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10 animate-fade-in;
+}
+
+.dropdown-item {
+  @apply block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors;
+}
+
+/* Tooltip Styles */
+.tooltip {
+  @apply absolute z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300;
+}
+
+.tooltip.show {
+  @apply opacity-100;
+}
+
+/* Loading Spinner */
+.spinner {
+  @apply inline-block w-6 h-6 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin;
+}
+
+.spinner-sm {
+  @apply w-4 h-4;
+}
+
+.spinner-lg {
+  @apply w-8 h-8;
+}
+
+/* Progress Bar */
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2.5 overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full bg-primary-600 transition-all duration-300 ease-out;
+}
+
+/* Tabs */
+.tabs {
+  @apply flex border-b border-gray-200;
+}
+
+.tab {
+  @apply px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border-b-2 border-transparent transition-colors;
+}
+
+.tab-active {
+  @apply text-primary-600 border-primary-600;
+}
+
+/* Alert Styles */
+.alert {
+  @apply p-4 rounded-lg flex items-start gap-3;
+}
+
+.alert-info {
+  @apply bg-blue-50 text-blue-800 border border-blue-200;
+}
+
+.alert-success {
+  @apply bg-green-50 text-green-800 border border-green-200;
+}
+
+.alert-warning {
+  @apply bg-yellow-50 text-yellow-800 border border-yellow-200;
+}
+
+.alert-error {
+  @apply bg-red-50 text-red-800 border border-red-200;
+}
+
+/* Checkbox & Radio */
+.checkbox,
+.radio {
+  @apply w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 cursor-pointer;
+}
+
+/* Toggle Switch */
+.toggle {
+  @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 cursor-pointer;
+}
+
+.toggle-off {
+  @apply bg-gray-200;
+}
+
+.toggle-on {
+  @apply bg-primary-600;
+}
+
+.toggle-thumb {
+  @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform;
+}
+
+/* Divider */
+.divider {
+  @apply border-t border-gray-200 my-4;
+}
+
+/* Avatar */
+.avatar {
+  @apply inline-flex items-center justify-center rounded-full bg-gray-300 text-white font-medium overflow-hidden;
+}
+
+.avatar-sm {
+  @apply w-8 h-8 text-xs;
+}
+
+.avatar-md {
+  @apply w-10 h-10 text-sm;
+}
+
+.avatar-lg {
+  @apply w-12 h-12 text-base;
+}
+
+.avatar-xl {
+  @apply w-16 h-16 text-lg;
+}
+
+/* List Styles */
+.list {
+  @apply divide-y divide-gray-200;
+}
+
+.list-item {
+  @apply py-3 px-4 hover:bg-gray-50 transition-colors cursor-pointer;
+}
+
+.list-item-active {
+  @apply bg-primary-50 text-primary-700;
+}
