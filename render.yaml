@@ -1,0 +1,74 @@
+# Render Blueprint for the PDF Annotator backend (Express + Socket.IO + MongoDB).
+# Deploy: Render Dashboard -> New -> Blueprint -> pick the Samikshatiwary/pdf-annotator repo.
+#
+# Uploaded PDFs are written to local disk. The "disk" block below makes that
+# storage persistent across deploys/restarts, but persistent disks require a
+# PAID plan (Starter, ~$7/mo) and pin the service to a single instance.
+#
+# To run on the FREE plan instead: change `plan: starter` to `plan: free`,
+# delete the entire `disk:` block, and accept that uploaded PDFs are wiped on
+# every redeploy/restart (fine for a demo). Free services also cold-start after
+# ~15 min idle, which briefly drops WebSocket connections.
+services:
+  - type: web
+    name: pdf-annotator-backend
+    runtime: node
+    plan: starter
+    rootDir: pdf-annotator-backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: uploads
+      # Mounted directly over the app's ./uploads dir so multer, static serving,
+      # and the cloud controller all read/write the same persistent location
+      # with no code changes.
+      mountPath: /opt/render/project/src/pdf-annotator-backend/uploads
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # PORT is injected automatically by Render — do not set it here.
+
+      # ---- Secrets: set these in the Render dashboard (sync:false = not stored in git) ----
+      - key: MONGODB_URI
+        sync: false          # your MongoDB Atlas connection string
+      - key: JWT_SECRET
+        sync: false          # long random string
+      - key: JWT_REFRESH_SECRET
+        sync: false          # different long random string
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false          # https://<this-backend>.onrender.com/api/cloud/google/callback
+      - key: DROPBOX_APP_KEY
+        sync: false
+      - key: DROPBOX_APP_SECRET
+        sync: false
+      - key: DROPBOX_REDIRECT_URI
+        sync: false          # https://<this-backend>.onrender.com/api/cloud/dropbox/callback
+      - key: FRONTEND_URL
+        sync: false          # your Vercel URL, e.g. https://pdf-annotator.vercel.app
+
+      # ---- Non-secret config (mirrors your local .env) ----
+      - key: JWT_EXPIRE
+        value: 24h
+      - key: JWT_REFRESH_EXPIRE
+        value: 7d
+      - key: UPLOAD_DIR
+        value: ./uploads
+      - key: MAX_FILE_SIZE
+        value: "50000000"
+      - key: ALLOWED_FILE_TYPES
+        value: application/pdf
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "1000"
+      - key: LOG_LEVEL
+        value: info
