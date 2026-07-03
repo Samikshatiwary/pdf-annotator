@@ -13,19 +13,16 @@ services:
   - type: web
     name: pdf-annotator-backend
     runtime: node
-    plan: starter
+    plan: free
     rootDir: pdf-annotator-backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
     autoDeploy: true
-    disk:
-      name: uploads
-      # Mounted directly over the app's ./uploads dir so multer, static serving,
-      # and the cloud controller all read/write the same persistent location
-      # with no code changes.
-      mountPath: /opt/render/project/src/pdf-annotator-backend/uploads
-      sizeGB: 1
+    # NOTE: Free plan has no persistent disk, so uploaded PDFs are wiped on every
+    # redeploy/restart, and the service cold-starts after ~15 min idle. Fine for a
+    # demo. To make uploads persistent later, upgrade to `plan: starter` and add a
+    # `disk:` block (mountPath /opt/render/project/src/pdf-annotator-backend/uploads).
     envVars:
       - key: NODE_ENV
         value: production
