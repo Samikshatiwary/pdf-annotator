@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import { Tag, Sparkles, RefreshCw } from 'lucide-react';
 import { Button, Loading } from '../ui';
 import {aiAPI} from '../../services/api/ai';
+import toast from 'react-hot-toast';
 
-const KeyPhrasesPanel = ({ text }) => {
+const KeyPhrasesPanel = ({ pdfId }) => {
   const [keyPhrases, setKeyPhrases] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const extractKeyPhrases = async () => {
     try {
       setLoading(true);
-      // Placeholder for key phrase extraction
       const response = await aiAPI.extractKeyPhrases(pdfId);
-      // In real implementation, this would call your AI/NLP service
-      setTimeout(() => {
-        setKeyPhrases(response.data.keyPhrases);
-        setLoading(false);
-      }, 1500);
+      if (response.success) {
+        setKeyPhrases(response.data.keyPhrases || []);
+      }
     } catch (error) {
       console.error('Failed to extract key phrases:', error);
+      toast.error('Failed to extract key phrases');
+    } finally {
       setLoading(false);
     }
   };

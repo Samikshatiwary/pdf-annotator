@@ -1,10 +1,10 @@
 import React from 'react';
-import { Star, Eye, MessageSquare, MoreVertical, Download, Trash2, Share2 } from 'lucide-react';
+import { Star, Eye, MessageSquare, MoreVertical, Download, Trash2, Share2, Pencil, Archive } from 'lucide-react';
 import { Dropdown, DropdownItem } from '../ui';
 import { formatDate, formatFileSize } from '../../utils/helpers';
 import { getThumbnailUrl } from '../../utils/pdf';
 
-const PDFCard = ({ pdf, onClick, onDelete, onFavorite, onShare }) => {
+const PDFCard = ({ pdf, onClick, onDelete, onFavorite, onShare, onRename, onArchive }) => {
   return (
     <div 
       className="card group cursor-pointer"
@@ -66,14 +66,23 @@ const PDFCard = ({ pdf, onClick, onDelete, onFavorite, onShare }) => {
               </button>
             }
           >
+            <DropdownItem icon={<Pencil size={16} />} onClick={(e) => {
+              e.stopPropagation();
+              onRename && onRename(pdf);
+            }}>
+              Rename
+            </DropdownItem>
             <DropdownItem icon={<Share2 size={16} />} onClick={(e) => {
               e.stopPropagation();
               onShare && onShare(pdf);
             }}>
               Share
             </DropdownItem>
-            <DropdownItem icon={<Download size={16} />}>
-              Download
+            <DropdownItem icon={<Archive size={16} />} onClick={(e) => {
+              e.stopPropagation();
+              onArchive && onArchive(pdf.uuid);
+            }}>
+              {pdf.isArchived ? 'Unarchive' : 'Archive'}
             </DropdownItem>
             <DropdownItem icon={<Trash2 size={16} />} onClick={(e) => {
               e.stopPropagation();

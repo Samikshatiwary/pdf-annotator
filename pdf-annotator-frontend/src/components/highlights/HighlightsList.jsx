@@ -1,6 +1,5 @@
 import React from 'react';
-import { Filter, SortAsc } from 'lucide-react';
-import { Button, Loading } from '../ui';
+import { Loading } from '../ui';
 import HighlightItem from './HighlightItem';
 
 const HighlightsList = ({ highlights, loading, onHighlightClick, onDelete }) => {
@@ -25,14 +24,6 @@ const HighlightsList = ({ highlights, loading, onHighlightClick, onDelete }) => 
         <h3 className="font-semibold text-gray-900">
           Highlights ({highlights.length})
         </h3>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" icon={<Filter size={16} />}>
-            Filter
-          </Button>
-          <Button size="sm" variant="secondary" icon={<SortAsc size={16} />}>
-            Sort
-          </Button>
-        </div>
       </div>
 
       <div className="space-y-3">

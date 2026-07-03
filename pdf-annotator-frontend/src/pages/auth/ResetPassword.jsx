@@ -55,6 +55,7 @@ const ResetPassword = () => {
       await authAPI.resetPassword({
         token,
         password: formData.password,
+        confirmPassword: formData.confirmPassword,
       });
       toast.success('Password reset successfully');
       navigate('/login');

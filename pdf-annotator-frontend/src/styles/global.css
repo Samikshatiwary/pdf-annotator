@@ -42,15 +42,113 @@
   }
 }
 
+/* ==========================================================================
+   Dark theme — flips the common surfaces/text/borders app-wide without needing
+   per-component dark: variants. Applied when <html> has the `dark` class.
+   ========================================================================== */
+.dark body {
+  background-color: #0b1220;
+  color: #e5e7eb;
+}
+.dark .bg-white { background-color: #1f2937 !important; }
+.dark .bg-gray-50 { background-color: #111827 !important; }
+.dark .bg-gray-100 { background-color: #374151 !important; }
+.dark .bg-gray-200 { background-color: #4b5563 !important; }
+
+.dark .bg-gray-800 { background-color: #1f2937 !important; }
+.dark .bg-gray-900 { background-color: #0b1220 !important; }
+
+.dark .text-gray-900 { color: #f9fafb !important; }
+.dark .text-gray-800 { color: #f3f4f6 !important; }
+.dark .text-gray-700 { color: #e5e7eb !important; }
+.dark .text-gray-600 { color: #cbd5e1 !important; }
+.dark .text-gray-500 { color: #94a3b8 !important; }
+.dark .text-gray-400 { color: #94a3b8 !important; }
+.dark .text-black { color: #f3f4f6 !important; }
+
+.dark .border-gray-200 { border-color: #374151 !important; }
+.dark .border-gray-300 { border-color: #4b5563 !important; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #374151 !important; }
+
+.dark .card { background-color: #1f2937 !important; border-color: #374151 !important; }
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #111827 !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af !important;
+}
+.dark select option {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+/* Dropdown / popover menus that use a white background */
+.dark .shadow-lg.bg-white,
+.dark .dropdown-menu {
+  background-color: #1f2937 !important;
+}
+
+/* Light "tint" backgrounds (info boxes, highlight cards) — darken them so the
+   (now-light) text stays readable instead of light-on-light. */
+.dark .bg-blue-50 { background-color: #172554 !important; }
+.dark .bg-yellow-50 { background-color: #422006 !important; }
+.dark .bg-green-50 { background-color: #052e16 !important; }
+.dark .bg-red-50 { background-color: #450a0a !important; }
+.dark .bg-purple-50 { background-color: #2e1065 !important; }
+.dark .bg-primary-50 { background-color: #172554 !important; }
+
+/* Annotation highlight colors used on highlight cards */
+.dark .bg-annotation-yellow { background-color: #4d3f0a !important; }
+.dark .bg-annotation-blue { background-color: #172554 !important; }
+.dark .bg-annotation-green { background-color: #052e16 !important; }
+.dark .bg-annotation-red { background-color: #450a0a !important; }
+.dark .bg-annotation-purple { background-color: #2e1065 !important; }
+
+/* Colored text on those tints — lighten so it stays readable */
+.dark .text-blue-900, .dark .text-blue-800, .dark .text-blue-700 { color: #bfdbfe !important; }
+.dark .text-yellow-900, .dark .text-yellow-800, .dark .text-yellow-700 { color: #fde68a !important; }
+.dark .text-green-900, .dark .text-green-800, .dark .text-green-700 { color: #bbf7d0 !important; }
+.dark .text-red-900, .dark .text-red-800, .dark .text-red-700 { color: #fecaca !important; }
+.dark .text-purple-900, .dark .text-purple-800, .dark .text-purple-700 { color: #e9d5ff !important; }
+
+.dark .shadow-lg,
+.dark .shadow-sm,
+.dark .shadow {
+  --tw-shadow-color: rgba(0, 0, 0, 0.5);
+}
+
 /* PDF.js worker styles */
 .react-pdf__Page {
   position: relative !important;
 }
 
+/* Do NOT constrain the canvas size (e.g. max-width/height:auto): pdf.js positions
+   the selectable text layer at the canvas's rendered size, so resizing the canvas
+   with CSS desyncs them and makes text selection grab the wrong text. Let react-pdf
+   control the size via `scale`; wide PDFs scroll in the container instead. */
 .react-pdf__Page__canvas {
   display: block;
-  max-width: 100%;
-  height: auto;
+}
+
+/* Make the PDF text layer easy to select for highlighting */
+.react-pdf__Page__textContent,
+.react-pdf__Page .textLayer {
+  cursor: text;
+}
+
+.react-pdf__Page__textContent span,
+.react-pdf__Page .textLayer span {
+  cursor: text;
+}
+
+/* Visible selection color on the PDF */
+.react-pdf__Page ::selection {
+  background: rgba(37, 99, 235, 0.35);
 }
 
 /* Loading animations */

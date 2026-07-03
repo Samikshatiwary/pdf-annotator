@@ -5,9 +5,13 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+
+const { initSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/auth');
 const pdfRoutes = require('./routes/pdf');
@@ -17,6 +21,7 @@ const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 const aiRoutes = require('./routes/ai');
 const cloudRoutes = require('./routes/cloud');
+const drawingRoutes = require('./routes/drawings');
 
 const app = express();
 
@@ -43,16 +48,16 @@ app.use(helmet({
 
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000,
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000)
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Don't rate-limit health checks or CORS preflight requests.
+  skip: (req) => req.method === 'OPTIONS' || req.path === '/health'
 });
-
-app.use(limiter);
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -80,6 +85,11 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// Rate limiter AFTER CORS so 429 responses still include CORS headers
+// (otherwise the browser reports a blocked 429 as a generic "Network Error").
+app.use(limiter);
+
 app.use(compression());
 app.use(morgan('combined', { 
   stream: { 
@@ -88,6 +98,7 @@ app.use(morgan('combined', {
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check endpoint
@@ -107,6 +118,7 @@ app.use('/api/highlights', highlightRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/cloud', cloudRoutes);
+app.use('/api/drawings', drawingRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -169,8 +181,9 @@ process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
 process.on('unhandledRejection', (err) => {
+  // Log the rejection but do NOT shut the whole server down: a single stray
+  // rejection (e.g. from a background task) should not take the API offline.
   logger?.error('Unhandled Promise Rejection:', err) || console.error('Unhandled Promise Rejection:', err);
-  gracefulShutdown();
 });
 
 process.on('uncaughtException', (err) => {
@@ -189,12 +202,16 @@ const startServer = async () => {
     console.log('- PORT:', PORT);
     
     await connectDB();
-    
-    server = app.listen(PORT, () => {
-      const message = `Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`;
+
+    // Wrap the Express app in an HTTP server so Socket.IO can share the port.
+    const httpServer = http.createServer(app);
+    initSocket(httpServer);
+
+    server = httpServer.listen(PORT, () => {
+      const message = `Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT} (with realtime)`;
       logger?.info(message) || console.log(message);
     });
-    
+
     return server;
   } catch (error) {
     const errorMessage = 'Failed to start server:';

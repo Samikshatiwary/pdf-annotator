@@ -19,13 +19,14 @@ import DropboxIntegration from '../components/cloud/DropboxIntegration';
 
 import { usePDF } from '../hooks/usePDF';
 import { useHighlights } from '../hooks/useHighlights';
-import { getPDFUrl } from '../utils/pdf';
+import { useCollaboration } from '../hooks/useCollaboration';
 import { Loading, Button, Dropdown, DropdownItem } from '../components/ui';
 
 const PDFViewerPage = () => {
   const { uuid } = useParams();
   const { loading: pdfLoading } = usePDF();
   const { highlights, loading: highlightsLoading, getHighlightsByPdf, deleteHighlight } = useHighlights();
+  const { activeUsers, lastChange, notifyHighlightChange } = useCollaboration(uuid);
   
   const [selectedText, setSelectedText] = useState(null);
   const [activeTool, setActiveTool] = useState('highlight');
@@ -35,7 +36,6 @@ const PDFViewerPage = () => {
   // AI & Cloud modals
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [showDropbox, setShowDropbox] = useState(false);
-  const [showAIPanel, setShowAIPanel] = useState(false);
 
   useEffect(() => {
     if (uuid) {
@@ -44,9 +44,12 @@ const PDFViewerPage = () => {
     }
   }, [uuid]);
 
+  // A collaborator changed a highlight — refetch to stay in sync live.
   useEffect(() => {
-  console.log(' Highlights state updated:', highlights);
-}, [highlights]);
+    if (lastChange && uuid) {
+      getHighlightsByPdf(uuid);
+    }
+  }, [lastChange]);
 
   const handleTextSelect = (selection) => {
     setSelectedText(selection);
@@ -55,6 +58,12 @@ const PDFViewerPage = () => {
   const handleHighlightCreated = () => {
     setSelectedText(null);
     getHighlightsByPdf(uuid);
+    notifyHighlightChange('created');
+  };
+
+  const handleDeleteHighlight = async (highlightUuid) => {
+    await deleteHighlight(highlightUuid);
+    notifyHighlightChange('deleted');
   };
 
   const handleHighlightClick = (highlight) => {
@@ -70,17 +79,23 @@ const PDFViewerPage = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4">
-      {/* Main PDF Viewer */}
-      <div className="flex-1 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-8rem)]">
+      {/* Main PDF Viewer — min-w-0 lets it shrink so the sidebar never gets pushed off-screen */}
+      <div className="flex-1 min-w-0 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden h-[70vh] lg:h-auto">
         {/* Top Toolbar */}
-        <div className="border-b border-gray-200 p-4 flex items-center justify-between">
+        <div className="border-b border-gray-200 p-4 flex items-center justify-between gap-2 flex-wrap">
           <ToolBar activeTool={activeTool} onToolChange={setActiveTool} />
-          
+
           {/* Cloud & AI Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {activeUsers.length > 1 && (
+              <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                {activeUsers.length} viewing
+              </span>
+            )}
             <Button
-              onClick={() => setShowAIPanel(!showAIPanel)}
+              onClick={() => { setShowSidebar(true); setActivePanel('ai'); }}
               variant="secondary"
               size="sm"
               icon={<Sparkles size={16} />}
@@ -114,17 +129,18 @@ const PDFViewerPage = () => {
         {/* PDF Content */}
         <div className="flex-1 overflow-hidden">
           <PDFViewer
-            pdfUrl={getPDFUrl(uuid)}
+            pdfId={uuid}
             onTextSelect={handleTextSelect}
             highlights={highlights}
             onHighlightClick={handleHighlightClick}
+            activeTool={activeTool}
           />
         </div>
       </div>
 
       {/* Right Sidebar */}
       {showSidebar && (
-        <div className="w-96 flex flex-col gap-4">
+        <div className="w-full lg:w-96 flex-shrink-0 flex flex-col gap-4 lg:overflow-hidden">
           {/* Panel Tabs */}
           <div className="bg-white rounded-lg shadow-lg p-2">
             <div className="flex gap-2">
@@ -181,7 +197,7 @@ const PDFViewerPage = () => {
                     highlights={highlights}
                     loading={highlightsLoading}
                     onHighlightClick={handleHighlightClick}
-                    onDelete={deleteHighlight}
+                    onDelete={handleDeleteHighlight}
                   />
                 </div>
               </>

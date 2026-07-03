@@ -44,9 +44,9 @@ export const userAPI = {
     return response.data;
   },
 
-  // Update preferences
+  // Update preferences (backend expects them nested under `preferences`)
   updatePreferences: async (preferences) => {
-    const response = await apiClient.put('/user/preferences', preferences);
+    const response = await apiClient.put('/user/preferences', { preferences });
     return response.data;
   },
 

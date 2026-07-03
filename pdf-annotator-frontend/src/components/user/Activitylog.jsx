@@ -7,19 +7,20 @@ import { formatDateTime } from '../../utils/helpers';
 const ActivityLog = () => {
   const { activities, loading } = useActivity();
 
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'upload':
-        return <FileText className="text-blue-600" size={20} />;
-      case 'highlight':
-        return <Highlighter className="text-yellow-600" size={20} />;
-      case 'share':
-        return <Share2 className="text-green-600" size={20} />;
-      case 'download':
-        return <Download className="text-purple-600" size={20} />;
-      default:
-        return <Activity className="text-gray-600" size={20} />;
+  const getActivityIcon = (type = '') => {
+    if (type.includes('pdf') || type.includes('upload')) {
+      return <FileText className="text-blue-600" size={20} />;
     }
+    if (type.includes('highlight')) {
+      return <Highlighter className="text-yellow-600" size={20} />;
+    }
+    if (type.includes('share')) {
+      return <Share2 className="text-green-600" size={20} />;
+    }
+    if (type.includes('download')) {
+      return <Download className="text-purple-600" size={20} />;
+    }
+    return <Activity className="text-gray-600" size={20} />;
   };
 
   if (loading) {

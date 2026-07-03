@@ -1,9 +1,9 @@
 import React from 'react';
-import { File, Star, Archive, MoreVertical, Download, Trash2 } from 'lucide-react';
+import { File, Star, Archive, MoreVertical, Download, Trash2, Pencil } from 'lucide-react';
 import { Dropdown, DropdownItem, Loading } from '../ui';
 import { formatDate, formatFileSize } from '../../utils/helpers';
 
-const LibraryList = ({ pdfs, loading, onPdfClick, onDelete, onFavorite }) => {
+const LibraryList = ({ pdfs, loading, onPdfClick, onDelete, onFavorite, onRename, onArchive }) => {
   if (loading) {
     return <Loading text="Loading PDFs..." />;
   }
@@ -92,7 +92,7 @@ const LibraryList = ({ pdfs, loading, onPdfClick, onDelete, onFavorite }) => {
                     </button>
                   }
                 >
-                  <DropdownItem 
+                  <DropdownItem
                     icon={<Star size={16} />}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -101,10 +101,25 @@ const LibraryList = ({ pdfs, loading, onPdfClick, onDelete, onFavorite }) => {
                   >
                     {pdf.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                   </DropdownItem>
-                  <DropdownItem icon={<Download size={16} />}>
-                    Download
+                  <DropdownItem
+                    icon={<Pencil size={16} />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRename && onRename(pdf);
+                    }}
+                  >
+                    Rename
                   </DropdownItem>
-                  <DropdownItem 
+                  <DropdownItem
+                    icon={<Archive size={16} />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchive && onArchive(pdf.uuid);
+                    }}
+                  >
+                    {pdf.isArchived ? 'Unarchive' : 'Archive'}
+                  </DropdownItem>
+                  <DropdownItem
                     icon={<Trash2 size={16} />}
                     onClick={(e) => {
                       e.stopPropagation();

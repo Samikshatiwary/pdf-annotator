@@ -2,6 +2,28 @@ const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
 const { logFileOperation, logError, logDebug } = require('./logger');
+
+// PDF metadata dates use the format "D:YYYYMMDDHHmmSS+HH'mm'", which the native
+// Date constructor cannot parse (it yields an Invalid Date object that then fails
+// Mongoose validation on save). Parse it safely and return null when unparseable.
+const parsePdfDate = (raw) => {
+  if (!raw) return null;
+  if (raw instanceof Date) return isNaN(raw.getTime()) ? null : raw;
+  if (typeof raw !== 'string') return null;
+
+  const match = raw.match(
+    /D:(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?/
+  );
+  if (match) {
+    const [, year, month = '01', day = '01', hour = '00', min = '00', sec = '00'] = match;
+    const d = new Date(Date.UTC(+year, +month - 1, +day, +hour, +min, +sec));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 class PDFProcessor {
   constructor() {
     this.processingQueue = new Map();
@@ -36,8 +58,8 @@ class PDFProcessor {
         keywords: pdfData.info?.Keywords || null,
         creator: pdfData.info?.Creator || null,
         producer: pdfData.info?.Producer || null,
-        creationDate: pdfData.info?.CreationDate ? new Date(pdfData.info.CreationDate) : null,
-        modificationDate: pdfData.info?.ModDate ? new Date(pdfData.info.ModDate) : null,
+        creationDate: parsePdfDate(pdfData.info?.CreationDate),
+        modificationDate: parsePdfDate(pdfData.info?.ModDate),
         pdfVersion: pdfData.version || null,
         isEncrypted: pdfData.info?.IsEncrypted || false,
         hasForm: pdfData.info?.IsAcroFormPresent || false,

@@ -5,7 +5,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { store } from './store/store';
 import { setOnlineStatus } from './store/slices/offlineSlice';
+import { initTheme } from './utils/theme';
 import './styles/global.css';
+
+// Apply the saved theme as early as possible to avoid a flash.
+initTheme();
 
 const AppRoutes = lazy(() => import('./routes/AppRoutes'));
 // Configure React Query

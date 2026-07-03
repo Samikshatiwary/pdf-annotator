@@ -124,7 +124,7 @@
 
 /* Tooltip Styles */
 .tooltip {
-  @apply absolute z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 transition-opacity duration-300;
+  @apply absolute z-50 whitespace-nowrap px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 pointer-events-none transition-opacity duration-300;
 }
 
 .tooltip.show {

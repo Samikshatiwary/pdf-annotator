@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Upload, Grid, List } from 'lucide-react';
-import { Button, Modal, ConfirmDialog } from '../components/ui';
+import { Button, Modal, ConfirmDialog, Input } from '../components/ui';
 import LibraryGrid from '../components/library/LibraryGrid';
 import LibraryList from '../components/library/LibraryList';
 import SearchBar from '../components/library/SearchBar';
@@ -15,23 +15,44 @@ import { filterPDFs, sortPDFs } from '../utils/search';
 
 const Library = () => {
   const navigate = useNavigate();
-  const { pdfs, loading, getAllPDFs, deletePDF, toggleFavorite } = usePDF();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { pdfs, loading, getAllPDFs, deletePDF, renamePDF, toggleFavorite, toggleArchive } = usePDF();
+
+  // This page backs /library, /favorites and /archived — derive the mode.
+  const mode = location.pathname.includes('favorites')
+    ? 'favorites'
+    : location.pathname.includes('archived')
+    ? 'archived'
+    : 'library';
+  const pageTitle = mode === 'favorites' ? 'Favorites' : mode === 'archived' ? 'Archived' : 'My Library';
   const [viewMode, setViewMode] = useState('grid');
   const [showUpload, setShowUpload] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pdfToDelete, setPdfToDelete] = useState(null);
+  const [showRename, setShowRename] = useState(false);
+  const [pdfToRename, setPdfToRename] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
   
   const [filters, setFilters] = useState({
     activeFilter: 'all',
-    search: '',
+    search: searchParams.get('search') || '',
   });
   const [sortBy, setSortBy] = useState('date');
 
+  // Keep the filter in sync when the header search navigates here with ?search=
   useEffect(() => {
-    getAllPDFs();
-  }, []);
+    const urlSearch = searchParams.get('search') || '';
+    setFilters((prev) => ({ ...prev, search: urlSearch }));
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (mode === 'favorites') getAllPDFs({ isFavorite: true });
+    else if (mode === 'archived') getAllPDFs({ isArchived: true });
+    else getAllPDFs();
+  }, [mode]);
 
   const handleSearch = (query) => {
     setFilters({ ...filters, search: query });
@@ -63,6 +84,21 @@ const Library = () => {
     setShowShare(true);
   };
 
+  const handleRename = (pdf) => {
+    setPdfToRename(pdf);
+    setRenameValue(pdf.displayName || pdf.originalName || '');
+    setShowRename(true);
+  };
+
+  const handleRenameConfirm = async () => {
+    const name = renameValue.trim();
+    if (!pdfToRename || !name) return;
+    await renamePDF(pdfToRename.uuid, name);
+    setShowRename(false);
+    setPdfToRename(null);
+    setRenameValue('');
+  };
+
   const handleUploadComplete = (data) => {
     setShowUpload(false);
     getAllPDFs();
@@ -77,7 +113,7 @@ const Library = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Library</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
           <p className="text-gray-600 mt-1">Manage and organize your PDFs</p>
         </div>
         <Button onClick={() => setShowUpload(true)} icon={<Upload size={16} />}>
@@ -113,6 +149,8 @@ const Library = () => {
               onDelete={handleDeleteClick}
               onFavorite={toggleFavorite}
               onShare={handleShare}
+              onRename={handleRename}
+              onArchive={toggleArchive}
             />
           ) : (
             <LibraryList
@@ -121,6 +159,8 @@ const Library = () => {
               onPdfClick={handlePdfClick}
               onDelete={handleDeleteClick}
               onFavorite={toggleFavorite}
+              onRename={handleRename}
+              onArchive={toggleArchive}
             />
           )}
         </div>
@@ -147,6 +187,33 @@ const Library = () => {
           }}
         />
       )}
+
+      {/* Rename Modal */}
+      <Modal
+        isOpen={showRename}
+        onClose={() => setShowRename(false)}
+        title="Rename PDF"
+        size="md"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Name"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            placeholder="Enter a new name"
+            onKeyDown={(e) => e.key === 'Enter' && handleRenameConfirm()}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setShowRename(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRenameConfirm} disabled={!renameValue.trim()}>
+              Save
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog

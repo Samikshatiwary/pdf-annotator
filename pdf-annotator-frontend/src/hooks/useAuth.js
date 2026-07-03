@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, setLoading, logout as logoutAction } from '../store/slices/authSlice';
 import { authAPI } from '../services/api/auth';
+import { applyTheme } from '../utils/theme';
 import toast from 'react-hot-toast';
 
 export const useAuth = () => {
@@ -25,6 +26,7 @@ export const useAuth = () => {
       const response = await authAPI.getCurrentUser();
       if (response.success) {
         dispatch(setUser(response.data.user));
+        applyTheme(response.data.user?.preferences?.theme);
       }
     } catch (error) {
       // User not authenticated - clear everything
@@ -40,6 +42,7 @@ export const useAuth = () => {
       const response = await authAPI.login(credentials);
       if (response.success) {
         dispatch(setUser(response.data.user));
+        applyTheme(response.data.user?.preferences?.theme);
         toast.success('Login successful!');
         return { success: true, user: response.data.user };
       }

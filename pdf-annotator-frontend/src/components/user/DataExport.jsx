@@ -12,15 +12,24 @@ const DataExport = () => {
     try {
       setExporting(true);
       const data = await userAPI.exportData(format);
-      
-      // Create download link
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+      // JSON comes back as an object; CSV comes back as a Blob.
+      const blob =
+        format === 'json'
+          ? new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+          : data instanceof Blob
+          ? data
+          : new Blob([data], { type: 'text/csv' });
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `pdf-annotator-data-${Date.now()}.${format}`;
+      document.body.appendChild(link);
       link.click();
-      
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       toast.success('Data exported successfully');
     } catch (error) {
       toast.error('Failed to export data');

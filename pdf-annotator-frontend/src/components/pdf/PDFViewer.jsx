@@ -1,26 +1,62 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download } from 'lucide-react';
 import { Button, Loading } from '../ui';
 import HighlightOverlay from '../highlights/HighlightOverlay';
+import DrawingLayer from './DrawingLayer';
+import { apiClient } from '../../services/apiclient';
+import toast from 'react-hot-toast';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.93/pdf.worker.mjs`;
+// Load the worker at the EXACT version react-pdf's bundled pdf.js uses
+// (pdfjs.version), so the API and worker versions can never mismatch — the
+// top-level pdfjs-dist is a different version and caused "API version does not
+// match Worker version".
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-const PDFViewer = ({ pdfUrl, onTextSelect, highlights = [], onHighlightClick }) => {
+const PDFViewer = ({ pdfId, onTextSelect, highlights = [], onHighlightClick, activeTool = 'highlight', drawColor = '#ef4444' }) => {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
   const [loading, setLoading] = useState(true);
+  const [fileConfig, setFileConfig] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
-  const fileConfig = useMemo(() => ({
-    url: pdfUrl,
-    httpHeaders: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    },
-    withCredentials: true
-  }), [pdfUrl]);
+  // Fetch the PDF through the authenticated axios client (Bearer token + refresh)
+  // as a Blob, then hand react-pdf a local object URL. react-pdf's own fetch does
+  // not reliably send the Authorization header, which caused "Failed to load PDF".
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl = null;
+    if (!pdfId) return;
+
+    setLoading(true);
+    setLoadError(false);
+    setFileConfig(null);
+
+    // Relative path -> uses apiClient's baseURL (same as every other working call),
+    // avoiding any dependency on VITE_BACKEND_URL being loaded.
+    apiClient
+      .get(`/pdf/${pdfId}/file`, { responseType: 'blob' })
+      .then((res) => {
+        if (cancelled) return;
+        objectUrl = window.URL.createObjectURL(res.data);
+        setFileConfig(objectUrl);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch PDF:', err);
+        if (!cancelled) {
+          setLoadError(true);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) window.URL.revokeObjectURL(objectUrl);
+    };
+  }, [pdfId]);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
@@ -44,13 +80,14 @@ const PDFViewer = ({ pdfUrl, onTextSelect, highlights = [], onHighlightClick }) 
   if (!pageElement) return;
   
   const pageRect = pageElement.getBoundingClientRect();
-  
-  // Calculate position RELATIVE to PDF page, not viewport
-  const x = rect.left - pageRect.left;
-  const y = rect.top - pageRect.top;
-  const width = rect.width;
-  const height = rect.height;
-  
+
+  // Calculate position RELATIVE to the PDF page, then normalize to scale=1 so the
+  // highlight is stored zoom-independently and renders correctly at any zoom level.
+  const x = (rect.left - pageRect.left) / scale;
+  const y = (rect.top - pageRect.top) / scale;
+  const width = rect.width / scale;
+  const height = rect.height / scale;
+
   if (onTextSelect) {
     onTextSelect({
       text: selection.toString(),
@@ -110,14 +147,20 @@ const PDFViewer = ({ pdfUrl, onTextSelect, highlights = [], onHighlightClick }) 
             icon={<ZoomIn size={16} />}
           />
           <Button
-            onClick={() => {
-            const link = document.createElement('a');
-            link.href = pdfUrl;
-            link.download = 'document.pdf';
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            onClick={async () => {
+              try {
+                const res = await apiClient.get(`/pdf/${pdfId}/file`, { responseType: 'blob' });
+                const url = window.URL.createObjectURL(res.data);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'document.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              } catch (err) {
+                toast.error('Failed to download PDF');
+              }
             }}
             size="sm"
             variant="secondary"
@@ -129,33 +172,55 @@ const PDFViewer = ({ pdfUrl, onTextSelect, highlights = [], onHighlightClick }) 
       </div>
 
       <div className="flex-1 overflow-auto p-4" onMouseUp={handleTextSelection}>
-        {loading && <Loading text="Loading PDF..." />}
-        
-        <div className="flex justify-center">
-          <div className="relative">
-            <Document
-              file={fileConfig}
-              onLoadSuccess={onDocumentLoadSuccess}
-              loading={<Loading />}
-              error={<div className="text-red-600">Failed to load PDF</div>}
-            >
-              <Page 
-                pageNumber={pageNumber} 
-                scale={scale}
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-              />
-            </Document>
-            
-            {/* Render highlights overlay */}
-            <HighlightOverlay
-              highlights={highlights}
-              pageNumber={pageNumber}
-              scale={scale}
-              onHighlightClick={onHighlightClick}
-            />
+        {loading && !loadError && <Loading text="Loading PDF..." />}
+
+        {loadError && (
+          <div className="text-center py-12 text-red-600">
+            Failed to load PDF. Please try again.
           </div>
-        </div>
+        )}
+
+        {fileConfig && !loadError && (
+          <div className="flex justify-center">
+            <div className="relative">
+              <Document
+                file={fileConfig}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={(err) => {
+                  console.error('react-pdf load error:', err);
+                  setLoadError(true);
+                  setLoading(false);
+                }}
+                loading={<Loading />}
+                error={<div className="text-red-600">Failed to load PDF</div>}
+              >
+                <Page
+                  pageNumber={pageNumber}
+                  scale={scale}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                />
+              </Document>
+
+              {/* Render highlights overlay */}
+              <HighlightOverlay
+                highlights={highlights}
+                pageNumber={pageNumber}
+                scale={scale}
+                onHighlightClick={onHighlightClick}
+              />
+
+              {/* Freehand drawing / eraser layer */}
+              <DrawingLayer
+                pdfId={pdfId}
+                pageNumber={pageNumber}
+                scale={scale}
+                activeTool={activeTool}
+                color={drawColor}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

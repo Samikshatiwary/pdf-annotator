@@ -11,9 +11,9 @@ export const aiAPI ={
     return response.data;
   },
 
-  semanticSeacrh: async(pdfId, query) =>{
+  semanticSearch: async(pdfId, query) =>{
     const response = await apiClient.post('/ai/semantic-search', {pdfId, query});
-    return response.data; 
+    return response.data;
   },
 
   analyzeText: async(pdfId) =>{

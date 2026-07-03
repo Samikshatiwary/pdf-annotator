@@ -120,8 +120,8 @@ const optionalAuth = async (req, res, next) => {
 };
 const verifyRefreshToken = async (req, res, next) => {
   try {
-    const refreshToken = req.body.refreshToken || req.cookies.refreshToken;
-    
+    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+
     if (!refreshToken) {
       return res.status(401).json({
         success: false,

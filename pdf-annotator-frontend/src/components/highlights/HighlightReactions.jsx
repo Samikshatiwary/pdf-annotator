@@ -2,11 +2,12 @@ import React from 'react';
 import { ThumbsUp, ThumbsDown, Heart, Smile } from 'lucide-react';
 import { useReactions } from '../../hooks/useReactions';
 
+// Types must match the backend enum: like | dislike | love | laugh | angry | sad
 const reactionTypes = [
   { type: 'like', icon: ThumbsUp, label: 'Like' },
   { type: 'dislike', icon: ThumbsDown, label: 'Dislike' },
   { type: 'love', icon: Heart, label: 'Love' },
-  { type: 'celebrate', icon: Smile, label: 'Celebrate' },
+  { type: 'laugh', icon: Smile, label: 'Laugh' },
 ];
 
 const HighlightReactions = ({ highlightUuid, reactions }) => {

@@ -101,9 +101,20 @@ router.post('/upload',
             userId: req.user._id
           });
 
-          pdf.processingStatus = 'failed';
-          pdf.processingError = error.message;
-          await pdf.save();
+          // Persist the failure status without re-saving the (possibly invalid)
+          // processing result that caused the error. A targeted update avoids
+          // re-triggering the same validation error and crashing the process.
+          try {
+            await PDF.updateOne(
+              { _id: pdf._id },
+              { processingStatus: 'failed', processingError: error.message }
+            );
+          } catch (saveError) {
+            logError(saveError, {
+              operation: 'Background PDF processing - status update',
+              pdfId: pdf._id
+            });
+          }
         }
       });
       logUserActivity(req.user._id, 'PDF uploaded', {

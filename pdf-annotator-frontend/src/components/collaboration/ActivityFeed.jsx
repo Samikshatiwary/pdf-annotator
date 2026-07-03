@@ -2,57 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { Activity, User, FileText, MessageSquare, Edit, Trash2 } from 'lucide-react';
 import { Loading } from '../ui';
 import { formatDateTime } from '../../utils/helpers';
+import { highlightsAPI } from '../../services/api/highlights';
 
 const ActivityFeed = ({ pdfId }) => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadActivities();
+    if (pdfId) loadActivities();
   }, [pdfId]);
 
+  // Build a real activity feed for this PDF from its highlights (who added what, when).
   const loadActivities = async () => {
     try {
       setLoading(true);
-      // Placeholder for activity feed
-      setTimeout(() => {
-        setActivities([
-          {
-            id: 1,
-            type: 'highlight',
-            user: { name: 'John Doe', avatar: null },
-            action: 'added a highlight',
-            page: 5,
-            timestamp: new Date(Date.now() - 1000 * 60 * 5),
-          },
-          {
-            id: 2,
-            type: 'comment',
-            user: { name: 'Jane Smith', avatar: null },
-            action: 'commented on page',
-            page: 3,
-            timestamp: new Date(Date.now() - 1000 * 60 * 15),
-          },
-          {
-            id: 3,
-            type: 'edit',
-            user: { name: 'Bob Johnson', avatar: null },
-            action: 'edited highlight',
-            page: 8,
-            timestamp: new Date(Date.now() - 1000 * 60 * 30),
-          },
-          {
-            id: 4,
-            type: 'share',
-            user: { name: 'Alice Williams', avatar: null },
-            action: 'shared this PDF',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60),
-          },
-        ]);
-        setLoading(false);
-      }, 1000);
+      const response = await highlightsAPI.getByPdfId(pdfId);
+      const highlights = response?.data?.highlights || [];
+
+      const items = highlights.map((h) => ({
+        id: h.uuid || h._id,
+        type: 'highlight',
+        user: { name: h.userId?.name || 'A user', avatar: h.userId?.avatar || null },
+        action: 'added a highlight',
+        page: h.pageNumber,
+        content: h.highlightedText,
+        timestamp: new Date(h.createdAt),
+      }));
+
+      // Most recent first
+      items.sort((a, b) => b.timestamp - a.timestamp);
+      setActivities(items);
     } catch (error) {
       console.error('Failed to load activities:', error);
+      setActivities([]);
+    } finally {
       setLoading(false);
     }
   };

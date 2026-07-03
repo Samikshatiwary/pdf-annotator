@@ -78,10 +78,10 @@ export const pdfAPI = {
     return response.data;
   },
 
-  // Search PDFs
+  // Search PDFs (backend expects the `search` query param)
   search: async (query, params = {}) => {
     const response = await apiClient.get('/pdf/search', {
-      params: { q: query, ...params }
+      params: { search: query, ...params }
     });
     return response.data;
   },

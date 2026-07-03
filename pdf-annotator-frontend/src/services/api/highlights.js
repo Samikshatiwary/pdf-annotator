@@ -69,10 +69,10 @@ export const highlightsAPI = {
     return response.data;
   },
 
-  // Search highlights
+  // Search highlights (backend expects the `search` query param)
   search: async (query, params = {}) => {
     const response = await apiClient.get('/highlights/search', {
-      params: { q: query, ...params }
+      params: { search: query, ...params }
     });
     return response.data;
   },

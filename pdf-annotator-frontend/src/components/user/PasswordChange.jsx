@@ -57,6 +57,7 @@ const PasswordChange = () => {
       await authAPI.changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword,
       });
       toast.success('Password changed successfully');
       setFormData({

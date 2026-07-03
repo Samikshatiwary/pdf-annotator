@@ -14,7 +14,7 @@ const ToolBar = ({ activeTool, onToolChange }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-2 flex items-center gap-1">
       {tools.map(({ id, icon: Icon, label }) => (
-        <Tooltip key={id} content={label}>
+        <Tooltip key={id} content={label} position="bottom">
           <Button
             onClick={() => onToolChange(id)}
             variant={activeTool === id ? 'primary' : 'secondary'}

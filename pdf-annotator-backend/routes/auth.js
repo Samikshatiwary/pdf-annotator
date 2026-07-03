@@ -186,7 +186,7 @@ router.post('/logout',
   logActivity('User logout'),
   async (req, res, next) => {
     try {
-      const refreshToken = req.body.refreshToken || req.cookies.refreshToken;
+      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
       if (refreshToken) {
         req.user.revokeRefreshToken(refreshToken);

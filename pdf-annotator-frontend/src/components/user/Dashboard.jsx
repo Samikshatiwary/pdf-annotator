@@ -12,7 +12,7 @@ const Dashboard = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       refresh();
-    }, 30000);
+    }, 120000);
     return () => clearInterval(interval);
   }, [refresh]);
 
@@ -20,34 +20,35 @@ const Dashboard = () => {
     return <Loading text="Loading dashboard..." />;
   }
 
+  const recentActivity = stats?.dashboard?.statistics?.recentActivity || {};
   const statsCards = [
     {
       title: 'Total PDFs',
       value: stats?.pdfs?.overview?.totalPDFs || 0,
       icon: FileText,
       color: 'bg-blue-500',
-      change: '+12%',
+      change: recentActivity.pdfsLast30Days ? `+${recentActivity.pdfsLast30Days} this month` : null,
     },
     {
       title: 'Highlights',
       value: stats?.highlights?.overview?.totalHighlights || 0,
       icon: Highlighter,
       color: 'bg-yellow-500',
-      change: '+8%',
+      change: recentActivity.highlightsLast30Days ? `+${recentActivity.highlightsLast30Days} this month` : null,
     },
     {
       title: 'Shared PDFs',
       value: stats?.pdfs?.overview?.publicPDFs || 0,
       icon: Users,
       color: 'bg-green-500',
-      change: '+5%',
+      change: null,
     },
     {
       title: 'Storage Used',
-      value: formatFileSize(stats?.dashboard?.totalSize || 0),
+      value: formatFileSize(stats?.dashboard?.statistics?.totalSize || 0),
       icon: TrendingUp,
       color: 'bg-purple-500',
-      change: '2.4GB',
+      change: null,
     },
   ];
 
@@ -65,7 +66,9 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-green-600 mt-1">{stat.change} from last month</p>
+                {stat.change && (
+                  <p className="text-xs text-green-600 mt-1">{stat.change}</p>
+                )}
               </div>
               <div className={`${stat.color} p-3 rounded-lg`}>
                 <stat.icon className="text-white" size={24} />
@@ -96,17 +99,7 @@ const Dashboard = () => {
                 </div>
               ))
             ) : (
-              [1, 2, 3].map((item) => (
-                <div key={item} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                  <div className="w-10 h-10 bg-gray-200 rounded flex-center">
-                    <FileText size={20} className="text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Document {item}.pdf</p>
-                    <p className="text-xs text-gray-500">2 days ago</p>
-                  </div>
-                </div>
-              ))
+              <p className="text-sm text-gray-500 py-4 text-center">No PDFs yet</p>
             )}
           </div>
         </div>
@@ -130,14 +123,7 @@ const Dashboard = () => {
                 </div>
               ))
             ) : (
-              [1, 2, 3].map((item) => (
-                <div key={item} className="p-3 bg-yellow-50 rounded-lg">
-                  <p className="text-sm text-gray-800 line-clamp-2">
-                    This is a highlighted text from the document...
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Page 5 • 3 days ago</p>
-                </div>
-              ))
+              <p className="text-sm text-gray-500 py-4 text-center">No highlights yet</p>
             )}
           </div>
         </div>

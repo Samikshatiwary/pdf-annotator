@@ -1,26 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Palette, Bell, Globe } from 'lucide-react';
+import { Settings, Palette } from 'lucide-react';
 import { Button } from '../ui';
 import { useUser } from '../../hooks/useUser';
+import { useAuth } from '../../hooks/useAuth';
 import { highlightColors } from '../../utils/annotations';
-import toast from 'react-hot-toast';
+import { applyTheme } from '../../utils/theme';
 
 const Preferences = () => {
-  const { loading } = useUser();
+  const { updatePreferences, loading } = useUser();
+  const { user } = useAuth();
   const [preferences, setPreferences] = useState({
     theme: 'light',
     defaultHighlightColor: '#ffff00',
     autoSave: true,
-    notifications: true,
-    language: 'en',
   });
 
+  // Load the user's saved preferences.
+  useEffect(() => {
+    if (user?.preferences) {
+      setPreferences({
+        theme: user.preferences.theme || 'light',
+        defaultHighlightColor: user.preferences.defaultHighlightColor || '#ffff00',
+        autoSave: user.preferences.autoSave ?? true,
+      });
+    }
+  }, [user]);
+
   const handleSave = async () => {
-    try {
-      // Save preferences
-      toast.success('Preferences saved successfully');
-    } catch (error) {
-      toast.error('Failed to save preferences');
+    // Backend accepts theme (light|dark), defaultHighlightColor, autoSave.
+    const result = await updatePreferences({
+      theme: preferences.theme,
+      defaultHighlightColor: preferences.defaultHighlightColor,
+      autoSave: preferences.autoSave,
+    });
+    if (result?.success) {
+      applyTheme(preferences.theme);
     }
   };
 
@@ -36,10 +50,13 @@ const Preferences = () => {
             <h4 className="font-medium text-gray-900">Appearance</h4>
           </div>
           <div className="flex gap-3">
-            {['light', 'dark', 'auto'].map((theme) => (
+            {['light', 'dark'].map((theme) => (
               <button
                 key={theme}
-                onClick={() => setPreferences({ ...preferences, theme })}
+                onClick={() => {
+                  setPreferences({ ...preferences, theme });
+                  applyTheme(theme); // live preview before saving
+                }}
                 className={`px-4 py-2 border-2 rounded-lg capitalize transition-all ${
                   preferences.theme === theme
                     ? 'border-primary-600 bg-primary-50 text-primary-700'
@@ -87,34 +104,7 @@ const Preferences = () => {
                 className="toggle"
               />
             </label>
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Enable notifications</span>
-              <input
-                type="checkbox"
-                checked={preferences.notifications}
-                onChange={(e) => setPreferences({ ...preferences, notifications: e.target.checked })}
-                className="toggle"
-              />
-            </label>
           </div>
-        </div>
-
-        {/* Language */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Globe size={18} className="text-gray-600" />
-            <h4 className="font-medium text-gray-900">Language</h4>
-          </div>
-          <select
-            value={preferences.language}
-            onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-          </select>
         </div>
 
         <Button onClick={handleSave} loading={loading}>

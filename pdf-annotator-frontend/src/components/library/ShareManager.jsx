@@ -5,9 +5,9 @@ import { useSharing } from '../../hooks/useSharing';
 import toast from 'react-hot-toast';
 
 const ShareManager = ({ pdf, isOpen, onClose }) => {
-  const { sharePDF, loading } = useSharing();
+  const { sharePDF, revokeShare, loading } = useSharing();
   const [email, setEmail] = useState('');
-  const [permission, setPermission] = useState('view');
+  const [permission, setPermission] = useState('read');
   const [copied, setCopied] = useState(false);
 
   const shareUrl = `${window.location.origin}/pdf/${pdf?.uuid}`;
@@ -15,11 +15,16 @@ const ShareManager = ({ pdf, isOpen, onClose }) => {
   const handleShare = async () => {
     if (!email) return;
 
-    const result = await sharePDF(pdf.uuid, { email, permission });
+    // Backend expects { userEmail, permission: read|write|admin }
+    const result = await sharePDF(pdf.uuid, { userEmail: email, permission });
     if (result.success) {
       setEmail('');
-      toast.success('PDF shared successfully');
     }
+  };
+
+  const handleRevoke = async (userId) => {
+    if (!userId) return;
+    await revokeShare(pdf.uuid, userId);
   };
 
   const handleCopyLink = () => {
@@ -55,9 +60,9 @@ const ShareManager = ({ pdf, isOpen, onClose }) => {
               onChange={(e) => setPermission(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
-              <option value="view">Can view</option>
-              <option value="comment">Can comment</option>
-              <option value="edit">Can edit</option>
+              <option value="read">Can view</option>
+              <option value="write">Can edit</option>
+              <option value="admin">Full access</option>
             </select>
           </div>
           <Button
@@ -105,22 +110,30 @@ const ShareManager = ({ pdf, isOpen, onClose }) => {
               Shared with
             </h4>
             <div className="space-y-2">
-              {pdf.sharedWith.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <div className="avatar avatar-sm bg-primary-600">
-                      {user.name?.charAt(0).toUpperCase()}
+              {pdf.sharedWith.map((user) => {
+                const userId = user.userId?._id || user.userId || user.id;
+                const name = user.name || user.userId?.name;
+                const emailAddr = user.email || user.userId?.email;
+                return (
+                  <div key={userId} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <div className="avatar avatar-sm bg-primary-600">
+                        {(name || emailAddr || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{name || emailAddr || 'User'}</p>
+                        <p className="text-xs text-gray-500">{user.permission}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                    </div>
+                    <button
+                      onClick={() => handleRevoke(userId)}
+                      className="text-gray-400 hover:text-red-600"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
-                  <button className="text-gray-400 hover:text-red-600">
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

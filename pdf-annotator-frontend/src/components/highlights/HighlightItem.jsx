@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, ThumbsUp, Trash2, Edit, MoreVertical } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Trash2, MoreVertical } from 'lucide-react';
 import { Dropdown, DropdownItem } from '../ui';
 import { formatDateTime } from '../../utils/helpers';
 import { getColorClass } from '../../utils/annotations';
@@ -51,7 +51,6 @@ const HighlightItem = ({ highlight, onClick, onDelete }) => {
             </button>
           }
         >
-          <DropdownItem icon={<Edit size={16} />}>Edit</DropdownItem>
           <DropdownItem icon={<Trash2 size={16} />} onClick={onDelete}>
             Delete
           </DropdownItem>

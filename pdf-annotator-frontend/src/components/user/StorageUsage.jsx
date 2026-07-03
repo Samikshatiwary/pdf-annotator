@@ -1,97 +1,82 @@
-import React from 'react';
-import { HardDrive, File, Trash2 } from 'lucide-react';
-import { Button } from '../ui';
+import React, { useState, useEffect } from 'react';
+import { HardDrive, File } from 'lucide-react';
+import { Loading } from '../ui';
+import { userAPI } from '../../services/api/user';
 import { formatFileSize } from '../../utils/helpers';
 
-const StorageUsage = ({ storage }) => {
-  const storageData = storage || {
-    used: 1200000000, // 1.2GB
-    total: 5000000000, // 5GB
-    breakdown: {
-      pdfs: 800000000,
-      highlights: 100000000,
-      cache: 300000000,
-    },
-  };
+const StorageUsage = () => {
+  const [storage, setStorage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const usagePercentage = (storageData.used / storageData.total) * 100;
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await userAPI.getStorage();
+        if (res.success) setStorage(res.data);
+      } catch (err) {
+        console.error('Failed to load storage:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) return <Loading text="Loading storage..." />;
+
+  const overview = storage?.overview || { totalSize: 0, totalFiles: 0, averageFileSize: 0 };
+  const categories = storage?.categoryBreakdown || [];
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <HardDrive size={20} className="text-gray-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Storage Usage</h3>
-        </div>
-        <Button variant="secondary" size="sm" icon={<Trash2 size={16} />}>
-          Clear Cache
-        </Button>
+      <div className="flex items-center gap-2 mb-6">
+        <HardDrive size={20} className="text-gray-600" />
+        <h3 className="text-lg font-semibold text-gray-900">Storage Usage</h3>
       </div>
 
-      {/* Usage Bar */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">
-            {formatFileSize(storageData.used)} of {formatFileSize(storageData.total)} used
-          </span>
-          <span className="text-sm font-medium text-gray-900">
-            {usagePercentage.toFixed(1)}%
-          </span>
+      {/* Overview cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-gray-50 rounded-lg p-4">
+          <p className="text-sm text-gray-600">Total Used</p>
+          <p className="text-2xl font-bold text-gray-900">{formatFileSize(overview.totalSize)}</p>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
-          <div
-            className={`h-3 rounded-full transition-all ${
-              usagePercentage > 90 ? 'bg-red-600' : usagePercentage > 70 ? 'bg-yellow-600' : 'bg-primary-600'
-            }`}
-            style={{ width: `${usagePercentage}%` }}
-          />
+        <div className="bg-gray-50 rounded-lg p-4">
+          <p className="text-sm text-gray-600">Files</p>
+          <p className="text-2xl font-bold text-gray-900">{overview.totalFiles}</p>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <p className="text-sm text-gray-600">Avg. File Size</p>
+          <p className="text-2xl font-bold text-gray-900">{formatFileSize(overview.averageFileSize || 0)}</p>
         </div>
       </div>
 
-      {/* Breakdown */}
+      {/* Category breakdown */}
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Storage Breakdown</h4>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <File className="text-blue-600" size={18} />
-              <span className="text-sm text-gray-700">PDF Files</span>
+        <h4 className="font-medium text-gray-900">By Category</h4>
+        {categories.length === 0 ? (
+          <p className="text-sm text-gray-500">No files yet</p>
+        ) : (
+          categories.map((cat) => (
+            <div key={cat.category}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <File className="text-blue-600" size={16} />
+                  <span className="text-sm text-gray-700 capitalize">{cat.category}</span>
+                  <span className="text-xs text-gray-400">({cat.count})</span>
+                </div>
+                <span className="text-sm font-medium text-gray-900">{formatFileSize(cat.size)}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-primary-600 h-2 rounded-full"
+                  style={{ width: `${Math.min(cat.percentage || 0, 100)}%` }}
+                />
+              </div>
             </div>
-            <span className="text-sm font-medium text-gray-900">
-              {formatFileSize(storageData.breakdown.pdfs)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <File className="text-yellow-600" size={18} />
-              <span className="text-sm text-gray-700">Highlights & Notes</span>
-            </div>
-            <span className="text-sm font-medium text-gray-900">
-              {formatFileSize(storageData.breakdown.highlights)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <File className="text-gray-600" size={18} />
-              <span className="text-sm text-gray-700">Cache</span>
-            </div>
-            <span className="text-sm font-medium text-gray-900">
-              {formatFileSize(storageData.breakdown.cache)}
-            </span>
-          </div>
-        </div>
+          ))
+        )}
       </div>
-
-      {usagePercentage > 80 && (
-        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <p className="text-sm text-yellow-800">
-            You're running low on storage. Consider deleting unused files or upgrading your plan.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

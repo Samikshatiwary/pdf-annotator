@@ -13,15 +13,16 @@ const HighlightOverlay = ({ highlights, pageNumber, scale, onHighlightClick }) =
         <div
           key={highlight.uuid || highlight._id}
           onClick={() => onHighlightClick && onHighlightClick(highlight)}
-          className="absolute pointer-events-auto cursor-pointer transition-opacity hover:opacity-70"
+          className="absolute pointer-events-auto cursor-pointer transition-all hover:brightness-95"
           style={{
-            left: `${(highlight.position?.x || 0)}px`,
-            top: `${(highlight.position?.y || 0)}px`,
-            width: `${(highlight.position?.width || 100)}px`,
-            height: `${(highlight.position?.height || 20)}px`,
+            left: `${(highlight.position?.x || 0) * scale}px`,
+            top: `${(highlight.position?.y || 0) * scale}px`,
+            width: `${(highlight.position?.width || 100) * scale}px`,
+            height: `${(highlight.position?.height || 20) * scale}px`,
             backgroundColor: highlight.color || '#ffff00',
-            opacity: highlight.opacity || 0.3,
+            opacity: Math.max(highlight.opacity || 0.4, 0.4),
             mixBlendMode: 'multiply',
+            borderRadius: '2px',
             pointerEvents: 'auto'
           }}
           title={highlight.highlightedText?.substring(0, 50) + '...'}

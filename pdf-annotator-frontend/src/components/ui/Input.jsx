@@ -24,7 +24,7 @@ const Input = forwardRef(({
         <input
           ref={ref}
           type={type}
-          className={`input ${error ? 'input-error' : ''} ${icon ? 'pl-10' : ''} ${className}`}
+          className={`input ${error ? 'input-error' : ''} ${icon ? '!pl-10' : ''} ${className}`}
           {...props}
         />
       </div>

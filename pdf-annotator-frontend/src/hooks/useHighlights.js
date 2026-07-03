@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { highlightsAPI } from '../services/api/highlights';
+import { indexedDBService } from '../services/offline/indexedDB';
 import toast from 'react-hot-toast';
 
 export const useHighlights = () => {
@@ -7,6 +8,20 @@ export const useHighlights = () => {
   const [loading, setLoading] = useState(false);
 
   const createHighlight = async (highlightData) => {
+    // Offline: queue the create and optimistically show it; it replays on reconnect.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      await indexedDBService.queueMutation('CREATE_HIGHLIGHT', highlightData);
+      const optimistic = {
+        ...highlightData,
+        uuid: `pending-${Date.now()}`,
+        pending: true,
+        createdAt: new Date().toISOString(),
+      };
+      setHighlights((prev) => [...prev, optimistic]);
+      toast.success('Highlight saved offline — will sync when online');
+      return { success: true, data: optimistic, offline: true };
+    }
+
     try {
       setLoading(true);
       const response = await highlightsAPI.create(highlightData);
@@ -31,12 +46,24 @@ const getHighlightsByPdf = async (pdfId) => {
     
     if (response.success && response.data) {
       const fetchedHighlights = response.data.highlights || [];
-      console.log(' Setting highlights:', fetchedHighlights);
       setHighlights(fetchedHighlights);
+      // Cache for offline viewing.
+      indexedDBService.saveHighlights(fetchedHighlights).catch(() => {});
       return response.data;
     }
   } catch (error) {
     console.error(' Failed to load highlights:', error);
+    // Offline / network error: fall back to cached highlights if we have them.
+    try {
+      const cached = await indexedDBService.getHighlights(pdfId);
+      if (cached && cached.length > 0) {
+        setHighlights(cached);
+        toast('Showing offline highlights', { icon: '📴' });
+        return { success: true, highlights: cached, offline: true };
+      }
+    } catch (cacheErr) {
+      console.error('Offline highlight read failed:', cacheErr);
+    }
     toast.error('Failed to load highlights');
     return { success: false, error };
   } finally {

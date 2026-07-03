@@ -12,16 +12,14 @@ const SummaryPanel = ({ pdfId, text }) => {
   const generateSummary = async () => {
     try {
       setLoading(true);
-      // Placeholder for AI summarization
       const response = await aiAPI.summarize(pdfId);
-      // In real implementation, this would call your AI API
-      setTimeout(() => {
-        setSummary(response.data.summary);
-        setLoading(false);
-      }, 2000);
+      if (response.success) {
+        setSummary(response.data.summary || '');
+      }
     } catch (error) {
       console.error('Failed to generate summary:', error);
       toast.error('Failed to generate summary');
+    } finally {
       setLoading(false);
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cloud, Upload, Download, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button, Modal, Loading } from '../ui';
 import { cloudAPI } from '../../services/api/cloud';
@@ -10,6 +10,15 @@ const GoogleDriveIntegration = ({ isOpen, onClose, pdfId }) => {
   const [syncing, setSyncing] = useState(false);
   const [files, setFiles] = useState([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
+
+  // Rehydrate a previously connected session so the link survives reopening.
+  useEffect(() => {
+    const token = localStorage.getItem('google_access_token');
+    if (token) {
+      setAccessToken(token);
+      setConnected(true);
+    }
+  }, [isOpen]);
 
   const handleConnect = async () => {
     try {
@@ -36,6 +45,7 @@ const GoogleDriveIntegration = ({ isOpen, onClose, pdfId }) => {
               const tokenResponse = await cloudAPI.googleDriveCallback(code);
               if (tokenResponse.success) {
                 setAccessToken(tokenResponse.data.accessToken);
+                localStorage.setItem('google_access_token', tokenResponse.data.accessToken);
                 setConnected(true);
                 toast.success('Connected to Google Drive!');
                 

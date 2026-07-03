@@ -77,10 +77,10 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           {/* Footer */}
           <div className="border-t border-gray-200 p-4">
-            <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg p-3">
-              <p className="text-sm font-medium text-gray-900 mb-1">Upgrade to Pro</p>
-              <p className="text-xs text-gray-600 mb-2">Get unlimited storage and features</p>
-              <button className="w-full bg-primary-600 text-white text-sm font-medium py-1.5 rounded hover:bg-primary-700 transition-colors">
+            <div className="bg-primary-600 rounded-lg p-3">
+              <p className="text-sm font-medium text-white mb-1">Upgrade to Pro</p>
+              <p className="text-xs text-blue-100 mb-2">Get unlimited storage and features</p>
+              <button className="w-full bg-white/90 text-primary-700 text-sm font-medium py-1.5 rounded hover:bg-white transition-colors">
                 Upgrade Now
               </button>
             </div>

@@ -16,7 +16,7 @@ exports.summarizePDF = async (req, res) => {
     }
 
     // Build correct file path
-    const filePath = path.join(__dirname, '..', 'uploads', pdf.filePath);
+    const filePath = path.join(__dirname, '..', pdf.filePath);
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -52,7 +52,7 @@ exports.extractKeyPhrases = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF not found' });
     }
 
-    const filePath = path.join(__dirname, '..', 'uploads', pdf.filePath);
+    const filePath = path.join(__dirname, '..', pdf.filePath);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, message: 'PDF file not found on server' });
     }
@@ -84,7 +84,7 @@ exports.semanticSearch = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF not found' });
     }
 
-    const filePath = path.join(__dirname, '..', 'uploads', pdf.filePath);
+    const filePath = path.join(__dirname, '..', pdf.filePath);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, message: 'PDF file not found on server' });
     }
@@ -116,7 +116,7 @@ exports.analyzeText = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF not found' });
     }
 
-    const filePath = path.join(__dirname, '..', 'uploads', pdf.filePath);
+    const filePath = path.join(__dirname, '..', pdf.filePath);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, message: 'PDF file not found on server' });
     }

@@ -2,7 +2,7 @@ import React from 'react';
 import PDFCard from './PDFCard';
 import { Loading } from '../ui';
 
-const LibraryGrid = ({ pdfs, loading, onPdfClick, onDelete, onFavorite }) => {
+const LibraryGrid = ({ pdfs, loading, onPdfClick, onDelete, onFavorite, onShare, onRename, onArchive }) => {
   if (loading) {
     return <Loading text="Loading PDFs..." />;
   }
@@ -30,6 +30,9 @@ const LibraryGrid = ({ pdfs, loading, onPdfClick, onDelete, onFavorite }) => {
           onClick={() => onPdfClick(pdf)}
           onDelete={() => onDelete(pdf.uuid)}
           onFavorite={() => onFavorite(pdf.uuid)}
+          onShare={onShare}
+          onRename={onRename}
+          onArchive={onArchive}
         />
       ))}
     </div>

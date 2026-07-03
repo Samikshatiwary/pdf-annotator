@@ -54,17 +54,48 @@ export const usePDF = () => {
     }
   };
 
+  const renamePDF = async (uuid, displayName) => {
+    try {
+      const response = await pdfAPI.update(uuid, { displayName });
+      if (response.success) {
+        setPdfs(pdfs.map(pdf =>
+          pdf.uuid === uuid ? { ...pdf, displayName } : pdf
+        ));
+        toast.success('PDF renamed');
+        return { success: true };
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to rename PDF');
+      return { success: false, error };
+    }
+  };
+
   const toggleFavorite = async (uuid) => {
     try {
       const response = await pdfAPI.toggleFavorite(uuid);
       if (response.success) {
-        setPdfs(pdfs.map(pdf => 
+        setPdfs(pdfs.map(pdf =>
           pdf.uuid === uuid ? { ...pdf, isFavorite: !pdf.isFavorite } : pdf
         ));
         return { success: true };
       }
     } catch (error) {
       toast.error('Failed to update favorite');
+      return { success: false };
+    }
+  };
+
+  const toggleArchive = async (uuid) => {
+    try {
+      const response = await pdfAPI.toggleArchive(uuid);
+      if (response.success) {
+        // Remove from the current list (it moves in/out of the archived view)
+        setPdfs(pdfs.filter(pdf => pdf.uuid !== uuid));
+        toast.success('PDF updated');
+        return { success: true };
+      }
+    } catch (error) {
+      toast.error('Failed to archive PDF');
       return { success: false };
     }
   };
@@ -76,6 +107,8 @@ export const usePDF = () => {
     uploadPDF,
     getAllPDFs,
     deletePDF,
+    renamePDF,
     toggleFavorite,
+    toggleArchive,
   };
 };

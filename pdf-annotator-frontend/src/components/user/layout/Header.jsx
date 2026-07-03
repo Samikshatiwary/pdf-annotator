@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Search, Menu } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { Dropdown, DropdownItem } from '../../ui';
@@ -8,10 +8,17 @@ import { useNavigate } from 'react-router-dom';
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    navigate(q ? `/library?search=${encodeURIComponent(q)}` : '/library');
   };
 
   return (
@@ -27,25 +34,24 @@ const Header = ({ onMenuClick }) => {
               <Menu size={24} />
             </button>
             
-            <div className="hidden sm:flex items-center flex-1 max-w-lg">
+            <form onSubmit={handleSearch} className="hidden sm:flex items-center flex-1 max-w-lg">
               <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Search PDFs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search PDFs... (press Enter)"
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
-            </div>
+            </form>
           </div>
 
           {/* Right side */}
           <div className="flex items-center gap-4">
-            <button className="relative text-gray-600 hover:text-gray-900">
+            <button className="relative text-gray-600 hover:text-gray-900" title="Notifications">
               <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                3
-              </span>
             </button>
 
             <Dropdown
